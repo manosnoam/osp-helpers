@@ -1,2 +1,2 @@
 # osp-helpers
-OpenStack Testing Helpers
+OpenStack Test Helpers
