@@ -5,7 +5,7 @@
 # On each overcloud node, it will also show current status of HA and containers.
 # Results will be saved as ${node}_errors_${today}.log
 
-print_openstack_errors() {
+find_osp_errors() {
   read -p "To search within compressed logs, enter \" gz \" : " -e include_gz
   [[ "$include_gz" =~ ^gz$ ]] && include_gz="-o -name '*.gz'" || include_gz=""
   today="`date +%Y-%m-%d`"
@@ -47,6 +47,6 @@ print_openstack_errors() {
 
 # Add all functions to bashrc (to be available after ssh logout):
 
-sed -i.bak '/print_openstack_errors (/,/}$/d' ~/.bashrc
+sed -i.bak '/find_osp_errors (/,/}$/d' ~/.bashrc
 
 typeset -f >> ~/.bashrc
