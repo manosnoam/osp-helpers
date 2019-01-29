@@ -1,9 +1,21 @@
 #!/bin/bash
 
-# Function to Search for ERRORs and exceptions on all Openstack Overcloud nodes.
-# Search options include DATE, UUID and compressed (gz) logs.
-# On each overcloud node, it will also show current status of HA and containers.
-# Results will be saved as ${node}_errors_${today}.log
+# find_osp_errors() - To easily search for OpenStack errors on all Overcloud nodes.
+# It's nice to add this function as an alias for "stack" user (see "bashrc" command bellow).
+#
+# On each overcloud node, it will also alert for HA status and containers health status.
+# Results will be saved for each Overcloud node as ${node}_errors_${today}.log
+#
+# Optional inputs:
+#
+# DATE : If you want to show errors on specific date (default is today's date).
+# UUID : If you want to search for specific Openstack object ID. 
+# gz : If you want to search inside older compressed logs (*.gz).
+#
+# To use: 
+# Run this script only once on your shell (the function will be created and added to bashrc).
+# Then you can always call it simply by running: find_osp_errors
+#
 
 find_osp_errors() {
   read -p "To search within compressed logs, enter \" gz \" : " -e include_gz
@@ -50,3 +62,4 @@ find_osp_errors() {
 sed -i.bak '/find_osp_errors (/,/}$/d' ~/.bashrc
 
 typeset -f >> ~/.bashrc
+
