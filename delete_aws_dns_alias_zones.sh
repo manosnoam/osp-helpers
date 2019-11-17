@@ -1,17 +1,31 @@
 #!/bin/sh
 
+### An interactive script to delete DNS Record-sets from AWS Route53. ###
+#
+# Currently supports deleting Alias Hosted Zones,
+# that were created by Openshift Installer, on devcluster.openshift.com:
+#
+# DNS Alias Record-set 1: api.${YOUR_CLUSTER_NAME}.devcluster.openshift.com.
+# DNS Alias Record-set 2: *.apps.${YOUR_CLUSTER_NAME}.devcluster.openshift.com.
+#
+# Execution example ###
+# ./delete_aws_dns_alias_zones.sh "nmanos-cluster-a"
+#
+
 ### Input & Constants ###
 
-MY_CLUSTER_NAME="$1"
-MAIN_ZONE_ID=Z3URY6TWQ91KVV
-MY_DNS_ALIAS1="api.${MY_CLUSTER_NAME}.devcluster.openshift.com."
-MY_DNS_ALIAS2="\052.apps.${MY_CLUSTER_NAME}.devcluster.openshift.com."
+YOUR_CLUSTER_NAME="$1"
+MAIN_ZONE_NAME="devcluster.openshift.com"
+MAIN_ZONE_ID="Z3URY6TWQ91KVV"
+YOUR_DNS_ALIAS1="api.${YOUR_CLUSTER_NAME}.${MAIN_ZONE_NAME}."
+YOUR_DNS_ALIAS2="\052.apps.${YOUR_CLUSTER_NAME}.${MAIN_ZONE_NAME}."
 JSON_FILE=`mktemp`
 
 
 ### Functions ###
 
 function create_json_for_dns_delete() {
+  # Input $1 : File to write the json output to
   (
   cat <<EOF
   {
@@ -34,6 +48,7 @@ EOF
 }
 
 function export_vars_from_json() {
+  # Input $1 : Json file to read variables from
   for s in $(grep -E '": [^\{]' "$1" | sed -e 's/: /=/' -e 's/^\s*//' -e "s/\(\,\)$//"); do
     echo "export $s"
     eval export $s
@@ -41,13 +56,15 @@ function export_vars_from_json() {
 }
 
 function delete_aws_record_set() {
+  # Input $1 : Hosted Zone ID
+  # Input $2 : DNS record-set (name) to delete
   echo -e "\nSearching in Hosted Zone [$1] - for a DNS record set: [$2]"
-  aws route53 list-resource-record-sets --hosted-zone-id $MAIN_ZONE_ID --query "ResourceRecordSets[?Name == '$2']" --out json > $JSON_FILE
+  aws route53 list-resource-record-sets --hosted-zone-id $1 --query "ResourceRecordSets[?Name == '$2']" --out json > $JSON_FILE
 
   cat $JSON_FILE
 
   if [[ $(< $JSON_FILE) == '[]' ]]; then
-    echo -e "The DNS record set was not found. Did you specify correct cluster name [${MY_CLUSTER_NAME}] ? "
+    echo -e "The DNS record set was not found. Did you specify correct cluster name [${YOUR_CLUSTER_NAME}] ? "
     return
   fi
 
@@ -61,7 +78,7 @@ function delete_aws_record_set() {
   read -r -p $'\nDELETE this DNS record - Are you sure? [y/N]' response
   if [[ "$response" =~ ^([yY][eE][sS]|[yY])$ ]]; then
     echo -e "\nDeleting the DNS record set:"
-    aws route53 change-resource-record-sets --hosted-zone-id $MAIN_ZONE_ID --change-batch file://$JSON_FILE
+    aws route53 change-resource-record-sets --hosted-zone-id $1 --change-batch file://$JSON_FILE
   else
       echo -e "Delete was canceled."
   fi
@@ -69,11 +86,8 @@ function delete_aws_record_set() {
 
 ### MAIN ###
 
-delete_aws_record_set "$MAIN_ZONE_ID" "$MY_DNS_ALIAS1"
-delete_aws_record_set "$MAIN_ZONE_ID" "$MY_DNS_ALIAS2"
-
-### Execution example ###
-# ./delete.sh "nmanos-cluster-a"
+delete_aws_record_set "$MAIN_ZONE_ID" "$YOUR_DNS_ALIAS1"
+delete_aws_record_set "$MAIN_ZONE_ID" "$YOUR_DNS_ALIAS2"
 
 ### Output example ###
 #
