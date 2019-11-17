@@ -1,7 +1,4 @@
 #!/bin/bash
-####################################################################################
-# By Eran Kuris and Noam Manos, 2019 ###############################################
-####################################################################################
 
 # Script description
 disclosure='----------------------------------------------------------------------
@@ -937,13 +934,10 @@ ssh -i $KEY_FILE ${ssh_user}@SERVER_FIP"
 
 # Comments
 #
-# Credentials for RHEL VMs: cloud-user OR root / 12345678
 # ssh -i tester_key.pem cloud-user@SERVER_FIP
 #
-# Credentials for CirrOS VMs: cirros / cubswin:)
 # ssh -i tester_key.pem cirros@SERVER_FIP
 #
-# Credentials for Windows 2019 VMs: Administrator / Aa123456
 # ssh -i tester_key.pem administrator@SERVER_FIP
 
 # You can find latest script here:
